@@ -56,4 +56,4 @@ This word graph can be used for:
 - Word games like Word Morph
 - Spell checkers
 - Word suggestion systems
-- Natural language processing applications 
+- Natural language processing applications
