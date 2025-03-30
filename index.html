@@ -1,0 +1,2691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>Word Chain Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0a192f;
+            --text-color: #e2e8f0;
+            --accent-color: #ff7964;
+            --accent-hover: #646eff;
+            --correct-color: #64ffda;
+            --error-color: #ff6b6b;
+            --duplicate-color: #ffd93d;
+            --container-bg: #112240;
+            --shadow-color: rgba(0, 0, 0, 0.25);
+            --box-gradient: linear-gradient(145deg, #112240, #0a192f);
+            --surface-color: #1b2d4d;
+            --letter-box-bg: #2a4365;
+            --letter-box-hover: #3c5a8c;
+            --letter-box-selected: #4a72b3;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, var(--bg-color), #1e293b);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 24px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--accent-color), var(--accent-hover));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            margin: 2rem 0 3rem;
+            letter-spacing: -0.5px;
+        }
+
+        .info-box {
+            background: var(--surface-color);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute;
+            width: 100%;
+            height: 280px;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            transform: rotateX(0deg);
+            box-sizing: border-box;
+        }
+
+        .keyboard {
+            background: var(--surface-color);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: absolute;
+            width: 100%;
+            height: 280px;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            transform: rotateX(180deg);
+            box-sizing: border-box;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .keyboard-row {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .keyboard-row:nth-child(2) {
+            padding: 0 20px;
+        }
+
+        .keyboard-row:nth-child(3) {
+            padding: 0 60px;
+        }
+
+        .keyboard-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-top: 4px;
+            height: 45px;
+        }
+
+        .action-key {
+            background: var(--letter-box-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .action-key:hover {
+            background: var(--letter-box-hover);
+            transform: translateY(-2px);
+        }
+
+        .action-key:active {
+            transform: translateY(0);
+            background: var(--letter-box-selected);
+        }
+
+        .action-key.active {
+            background: var(--letter-box-selected);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .action-key::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+            pointer-events: none;
+        }
+
+        .key {
+            background: var(--letter-box-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: var(--text-color);
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            height: 52px;
+            min-width: 28px;
+        }
+
+        .key:hover {
+            background: var(--letter-box-hover);
+            transform: translateY(-2px);
+        }
+
+        .key:active {
+            transform: translateY(-2px);
+            background: var(--letter-box-selected);
+        }
+
+        .key::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+            pointer-events: none;
+        }
+
+        .letter-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--letter-box-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            color: var(--text-color);
+            font-size: 32px;
+            font-weight: 700;
+            border-radius: 16px;
+            height: 72px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            flex: 1 1 auto;
+            max-width: calc((100% - 40px) / 7);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .letter-box:hover {
+            transform: translateY(-4px);
+            background: var(--letter-box-hover);
+            border-color: var(--letter-box-selected);
+        }
+
+        .letter-box.selected {
+            background: var(--letter-box-selected);
+            border-color: var(--letter-box-selected);
+            transform: translateY(-2px);
+        }
+
+        .letter-box:active {
+            transform: translateY(-2px);
+        }
+
+        .letter-box::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+            pointer-events: none;
+        }
+
+        .letter-box.add-left::before,
+        .letter-box.add-right::after {
+            content: '+';
+            position: absolute;
+            font-size: 28px;
+            color: var(--accent-color);
+            opacity: 1;
+            pointer-events: none;
+            top: 50%;
+            transform: translateY(-50%);
+            line-height: 1;
+            width: 8px;
+            text-align: center;
+            z-index: 1000;
+            background: var(--surface-color);
+            height: 28px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .letter-box.add-left::before {
+            right: calc(100% + 2px);
+        }
+
+        .letter-box.add-right::after {
+            left: calc(100% + 2px);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: var(--text-color);
+            gap: 16px;
+            margin-bottom: 24px;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0 24px;
+        }
+
+        .stats div {
+            background: var(--surface-color);
+            padding: 16px 24px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            flex: 1;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .stats div:hover {
+            transform: translateY(-2px);
+            background: var(--letter-box-hover);
+        }
+
+        .stats span {
+            color: var(--accent-color);
+            font-weight: 800;
+            font-size: 1.125rem;
+            margin-left: 8px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 16px;
+                margin: 1rem auto;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+                margin: 1.5rem 0 2rem;
+            }
+
+            .letter-box {
+                height: 60px;
+                font-size: 28px;
+            }
+
+            .stats {
+                font-size: 0.75rem;
+                gap: 12px;
+            }
+
+            .stats div {
+                padding: 12px 16px;
+            }
+
+            .stats span {
+                font-size: 1rem;
+            }
+
+            .keyboard {
+                padding: 8px;
+                height: 260px;
+                gap: 6px;
+            }
+
+            .keyboard-row {
+                gap: 3px;
+                padding: 0 !important;
+            }
+
+            .keyboard-row:nth-child(2) {
+                padding: 0 4px !important;
+            }
+
+            .keyboard-row:nth-child(3) {
+                padding: 0 24px !important;
+            }
+
+            .key {
+                font-size: 1.1rem;
+                border-radius: 8px;
+                height: 48px;
+                min-width: 24px;
+            }
+
+            .keyboard-actions {
+                height: 48px;
+                margin-top: 6px;
+                gap: 4px;
+            }
+
+            .info-box {
+                height: 260px;
+            }
+
+            .dynamic-container {
+                height: 260px;
+            }
+
+            .action-key {
+                font-size: 1.75rem;
+            }
+        }
+
+        .dynamic-container {
+            position: relative;
+            height: 280px;
+            margin-bottom: 24px;
+            perspective: 1500px;
+            width: 100%;
+            padding: 0;
+        }
+
+        .dynamic-container.keyboard-active .info-box {
+            transform: rotateX(-180deg);
+        }
+
+        .dynamic-container.keyboard-active .keyboard {
+            transform: rotateX(0deg);
+        }
+
+        .game-box {
+            display: flex;
+            justify-content: center;
+            flex-wrap: nowrap;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 24px;
+            background: var(--surface-color);
+            border-radius: 20px;
+            border: 2px solid transparent;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .plus-indicator {
+            position: absolute;
+            font-size: 28px;
+            color: var(--accent-color);
+            opacity: 1;
+            pointer-events: none;
+            top: 50%;
+            transform: translateY(-50%);
+            line-height: 1;
+            width: 8px;
+            text-align: center;
+            z-index: 1000;
+            height: 28px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .plus-indicator.visible {
+            display: flex;
+        }
+
+        .game-box.correct {
+            border-color: var(--correct-color);
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.2);
+        }
+
+        .game-box.error {
+            border-color: var(--error-color);
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.2);
+        }
+
+        .game-box.duplicate {
+            border-color: var(--duplicate-color);
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
+        }
+
+        .game-box.deleting {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.2);
+        }
+
+        .word-chain-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .chain-view-title {
+            color: var(--text-color);
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 24px 0;
+            text-align: center;
+            line-height: 1.4;
+            padding: 0 20px;
+            opacity: 0.9;
+        }
+
+        .word-chain {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: calc(100vh - 240px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .chain-word {
+            position: relative;
+            width: 140px;
+            margin: 0 auto;
+            padding: 12px 16px;
+            background: var(--surface-color);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            color: var(--text-color);
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(8px);
+            z-index: 2;
+        }
+
+        .chain-word::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -32px;
+            width: 2px;
+            height: 32px;
+            background: linear-gradient(to bottom, 
+                rgba(255, 255, 255, 0.2),
+                rgba(255, 255, 255, 0.05)
+            );
+            transform: translateX(-50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .chain-word:hover {
+            transform: translateY(-2px);
+            background: var(--letter-box-hover);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .chain-word.selected {
+            background: var(--letter-box-selected);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 20px rgba(255, 121, 100, 0.1);
+        }
+
+        .chain-buttons {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(to top, 
+                rgba(10, 25, 47, 0.95), 
+                rgba(10, 25, 47, 0)
+            );
+            gap: 12px;
+            backdrop-filter: blur(8px);
+        }
+
+        .rollback-button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            z-index: 1002;
+            width: 180px;
+        }
+
+        .reset-button {
+            background: var(--surface-color);
+            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1002;
+            width: 180px;
+        }
+
+        .close-wheel {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: var(--surface-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 1001;
+        }
+
+        .word-chain-view.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .word-chain::-webkit-scrollbar {
+            display: none;
+        }
+
+        .chain-word:last-child::after {
+            display: none;
+        }
+
+        .close-wheel:hover {
+            background: var(--letter-box-hover);
+            transform: rotate(90deg);
+        }
+
+        .rollback-button.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .reset-button:hover {
+            background: var(--letter-box-hover);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 480px) {
+            .word-chain {
+                max-width: 300px;
+                height: calc(100vh - 220px);
+                padding: 16px;
+            }
+            
+            .chain-word {
+                width: 120px;
+                padding: 10px 16px;
+                font-size: 0.95rem;
+                margin-bottom: 28px;
+            }
+
+            .chain-word::after {
+                bottom: -28px;
+                height: 28px;
+            }
+
+            .chain-buttons {
+                padding: 16px;
+            }
+
+            .rollback-button,
+            .reset-button {
+                width: 160px;
+                padding: 10px 20px;
+                font-size: 0.85rem;
+            }
+
+            .chain-view-title {
+                font-size: 1.1rem;
+                margin: 20px 0;
+            }
+        }
+
+        .help-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--surface-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 998;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .share-buttons {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 998;
+        }
+
+        .share-button {
+            background: var(--surface-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+            z-index: 999;
+            padding: 0;
+            overflow: hidden;
+            flex-shrink: 0;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        .share-button svg {
+            width: 18px;
+            height: 18px;
+            display: block;
+            fill: currentColor;
+            color: var(--text-color);
+            stroke: none;
+            position: relative;
+            z-index: 1000;
+            flex-shrink: 0;
+            pointer-events: none;
+        }
+
+        @media (max-width: 480px) {
+            .share-buttons {
+                bottom: 16px;
+                left: 16px;
+                z-index: 999;
+                gap: 12px;
+            }
+            
+            .share-button {
+                width: 32px;
+                height: 32px;
+                min-width: 32px;
+                min-height: 32px;
+            }
+
+            .share-button svg {
+                width: 18px;
+                height: 18px;
+                min-width: 18px;
+                min-height: 18px;
+            }
+        }
+
+        .share-button:hover {
+            background: var(--letter-box-hover);
+            transform: scale(1.05);
+        }
+
+        .share-button:active {
+            transform: scale(0.95);
+        }
+
+        .share-button.whatsapp:hover {
+            color: #25D366;
+            border-color: #25D366;
+        }
+
+        .share-button.telegram:hover {
+            color: #0088cc;
+            border-color: #0088cc;
+        }
+
+        .share-button.twitter:hover {
+            color: #1DA1F2;
+            border-color: #1DA1F2;
+        }
+
+        .instructions-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--bg-color) 0%, #1e293b 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1001;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(10px);
+            padding: 40px 0;
+            overflow-y: auto;
+        }
+
+        .instructions-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .close-instructions {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--surface-color);
+            border: none;
+            color: var(--text-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 1002;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .close-instructions:hover {
+            background: var(--letter-box-hover);
+            transform: rotate(90deg);
+        }
+
+        .instructions-content {
+            max-width: 600px;
+            width: 100%;
+            color: var(--text-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            padding: 0 24px;
+            box-sizing: border-box;
+        }
+
+        .instructions-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 30px;
+            text-align: center;
+            background: linear-gradient(45deg, var(--accent-color), var(--accent-hover));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .instruction-section {
+            background: var(--surface-color);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .instruction-section h2 {
+            color: var(--accent-color);
+            margin-bottom: 16px;
+            font-size: 1.4rem;
+        }
+
+        .instruction-section p {
+            margin-bottom: 16px;
+        }
+
+        .instruction-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .instruction-section li {
+            margin-bottom: 12px;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .instruction-section li::before {
+            content: '•';
+            color: var(--accent-color);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .tip-overlay {
+            position: absolute;
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text-color);
+            font-size: 1rem;
+            max-width: 300px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1003;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .tip-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .tip-overlay::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--surface-color);
+            transform: rotate(45deg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: none;
+            border-left: none;
+        }
+
+        .tip-overlay.top::after {
+            bottom: -7px;
+            left: 50%;
+            margin-left: -6px;
+        }
+
+        .tip-overlay.bottom::after {
+            top: -7px;
+            left: 50%;
+            margin-left: -6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: none;
+            border-right: none;
+        }
+
+        .tip-content {
+            margin-bottom: 12px;
+        }
+
+        .tip-button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .tip-button:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 480px) {
+            .instructions-content {
+                padding: 0 16px;
+            }
+            
+            .instruction-section {
+                padding: 16px;
+            }
+
+            .help-button {
+                bottom: 16px;
+                right: 16px;
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+
+            .close-instructions {
+                width: 32px;
+                height: 32px;
+                font-size: 1.25rem;
+            }
+        }
+
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 2rem;
+            padding: 0 24px;
+        }
+
+        .mode-button {
+            background: rgba(17, 34, 64, 0.6);
+            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+            opacity: 0.8;
+            letter-spacing: 0.5px;
+        }
+
+        .mode-button:hover {
+            background: rgba(42, 67, 101, 0.6);
+            transform: translateY(-1px);
+            opacity: 1;
+        }
+
+        .mode-button.active {
+            background: rgba(255, 121, 100, 0.15);
+            color: var(--accent-color);
+            border-color: rgba(255, 121, 100, 0.2);
+            opacity: 1;
+            font-weight: 600;
+        }
+
+        @media (max-width: 480px) {
+            .mode-selector {
+                padding: 0 16px;
+            }
+            
+            .mode-button {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+            }
+        }
+
+        .daily-challenge-info {
+            background: var(--surface-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        .daily-challenge-info.active {
+            display: block;
+        }
+
+        .daily-challenge-info .new-challenge-button {
+            margin-top: 16px;
+            background: var(--surface-color);
+            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            padding: 8px 16px;
+        }
+
+        .daily-challenge-info .new-challenge-button:hover {
+            background: var(--letter-box-hover);
+            transform: translateY(-2px);
+        }
+
+        .target-word {
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 12px 0;
+            background: linear-gradient(45deg, var(--accent-color), var(--accent-hover));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .challenge-stats {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 16px;
+            font-size: 0.9rem;
+        }
+
+        .challenge-stats span {
+            color: var(--accent-color);
+            font-weight: 800;
+            margin-left: 4px;
+        }
+
+        .victory-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(10, 25, 47, 0.95), rgba(30, 41, 59, 0.95));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .victory-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .victory-content {
+            text-align: center;
+            padding: 40px;
+            max-width: 600px;
+        }
+
+        .victory-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, var(--accent-color), var(--accent-hover));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .victory-stats {
+            font-size: 1.2rem;
+            margin: 20px 0;
+            color: var(--text-color);
+        }
+
+        .victory-buttons {
+            display: flex;
+            gap: 16px;
+            margin-top: 30px;
+        }
+
+        .new-challenge-button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .new-challenge-button:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .close-victory {
+            background: var(--surface-color);
+            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .refresh-challenge-button {
+            position: fixed;
+            bottom: 20px;
+            right: 68px;
+            background: var(--surface-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 998;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .refresh-challenge-button::after {
+            content: 'New Challenge';
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .refresh-challenge-button:hover::after {
+            opacity: 1;
+        }
+
+        .reset-icon-button {
+            position: fixed;
+            bottom: 20px;
+            right: 68px;
+            background: var(--surface-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 998;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .reset-icon-button::after {
+            content: 'Reset Game';
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .reset-icon-button:hover::after {
+            opacity: 1;
+        }
+
+        .refresh-challenge-button.active {
+            display: flex;
+        }
+
+        .refresh-challenge-button:hover {
+            background: var(--accent-hover);
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 480px) {
+            .reset-icon-button {
+                bottom: 16px;
+                right: 56px;
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            .refresh-challenge-button {
+                bottom: 16px;
+                right: 96px;
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+
+            .refresh-challenge-button::after,
+            .reset-icon-button::after {
+                font-size: 0.7rem;
+                padding: 3px 6px;
+                bottom: calc(100% + 6px);
+            }
+        }
+
+        .victory-share-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .victory-share-buttons .share-button {
+            position: static;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
+        }
+
+        .victory-share-buttons .share-button svg {
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            min-height: 18px;
+        }
+
+        @media (max-width: 480px) {
+            .victory-share-buttons .share-button {
+                width: 32px;
+                height: 32px;
+                min-width: 32px;
+                min-height: 32px;
+            }
+
+            .victory-share-buttons .share-button svg {
+                width: 18px;
+                height: 18px;
+                min-width: 18px;
+                min-height: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Word Morph</h1>
+
+        <div class="mode-selector">
+            <button class="mode-button active" id="classic-mode">Classic Mode</button>
+            <button class="mode-button" id="daily-mode">Daily Challenge</button>
+        </div>
+
+        <div class="daily-challenge-info" id="daily-challenge-info">
+            <div>Target Word:</div>
+            <div class="target-word" id="target-word">LOADING...</div>
+            <div class="challenge-stats">
+                <div>Best Path: <span id="best-path-length">-</span></div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div>Chain Length: <span id="chain-length">0</span></div>
+            <div>Possible Words: <span id="word-possibilities">0</span></div>
+        </div>
+
+        <!-- Game Area -->
+        <div id="game-area" class="game-box"></div>
+
+        <!-- Replace the info-box div with this new structure -->
+        <div class="dynamic-container">
+            <div class="info-box">
+                <div id="message" class="info-message">Start forming words!</div>
+                <div id="definition" class="info-definition"></div>
+            </div>
+            <div class="keyboard">
+                <div class="keyboard-row">
+                    <div class="key">Q</div>
+                    <div class="key">W</div>
+                    <div class="key">E</div>
+                    <div class="key">R</div>
+                    <div class="key">T</div>
+                    <div class="key">Y</div>
+                    <div class="key">U</div>
+                    <div class="key">I</div>
+                    <div class="key">O</div>
+                    <div class="key">P</div>
+                </div>
+                <div class="keyboard-row">
+                    <div class="key">A</div>
+                    <div class="key">S</div>
+                    <div class="key">D</div>
+                    <div class="key">F</div>
+                    <div class="key">G</div>
+                    <div class="key">H</div>
+                    <div class="key">J</div>
+                    <div class="key">K</div>
+                    <div class="key">L</div>
+                </div>
+                <div class="keyboard-row">
+                    <div class="key">Z</div>
+                    <div class="key">X</div>
+                    <div class="key">C</div>
+                    <div class="key">V</div>
+                    <div class="key">B</div>
+                    <div class="key">N</div>
+                    <div class="key">M</div>
+                </div>
+                <div class="keyboard-actions">
+                    <div class="action-key" id="add-left">←</div>
+                    <div class="action-key" id="delete">⌫</div>
+                    <div class="action-key" id="add-right">→</div>
+                </div>
+            </div>
+        </div>
+
+        <input type="text" 
+               id="mobile-input" 
+               maxlength="1" 
+               autocomplete="off" 
+               style="opacity: 0; position: fixed; width: 1px; height: 1px; pointer-events: none;">
+
+        <!-- Add this after the game-area div -->
+        <div class="word-chain-view">
+            <button class="close-wheel">×</button>
+            <div class="chain-view-title">Your Word Chain Journey<br>Click a word to roll back</div>
+            <div class="word-chain"></div>
+            <div class="chain-buttons">
+                <button class="rollback-button">Roll Back to Selected Word</button>
+                <button class="reset-button">Reset Game</button>
+            </div>
+        </div>
+
+        <!-- Add this before the help button -->
+        <div class="share-buttons">
+            <button class="share-button whatsapp" id="share-whatsapp">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="display: block;">
+                    <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+                </svg>
+            </button>
+            <button class="share-button telegram" id="share-telegram">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display: block;">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.296c-.146.658-.537.818-1.084.51l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.332-.373-.119L8.57 13.383l-2.95-.923c-.64-.213-.653-.64.135-.954l11.514-4.435c.532-.193.998.128.794 1.177z"/>
+                </svg>
+            </button>
+            <button class="share-button twitter" id="share-twitter">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="display: block;">
+                    <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Add this after the container div opens -->
+        <button class="help-button" id="help-button">?</button>
+        <button class="refresh-challenge-button" id="refresh-challenge-button">⟳</button>
+        <button class="reset-icon-button" id="reset-icon-button">⟲</button>
+
+        <!-- Add this before the closing container div -->
+        <div class="instructions-overlay" id="instructions-overlay">
+            <button class="close-instructions">×</button>
+            <div class="instructions-content">
+                <div class="instructions-title">How to Play Word Morph</div>
+                
+                <div class="instruction-section">
+                    <h2>Game Objective</h2>
+                    <p>Create the longest possible chain of valid English words by changing one letter at a time or adding/removing letters. Each word must be a real English word.</p>
+                </div>
+
+                <div class="instruction-section">
+                    <h2>Basic Rules</h2>
+                    <ul>
+                        <li>Click any letter to modify it</li>
+                        <li>Use arrow buttons to add letters before or after the selected position</li>
+                        <li>Use backspace to remove the selected letter</li>
+                        <li>Each word must be a valid English word</li>
+                        <li>You can't use the same word twice</li>
+                    </ul>
+                </div>
+
+                <div class="instruction-section">
+                    <h2>Features</h2>
+                    <ul>
+                        <li>Click "Chain Length" to view your word history</li>
+                        <li>Click "Possible Words" to see hints and statistics</li>
+                        <li>Your progress is automatically saved</li>
+                        <li>Use the Roll Back feature to return to a previous word</li>
+                    </ul>
+                </div>
+
+                <div class="instruction-section">
+                    <h2>Tips</h2>
+                    <ul>
+                        <li>Try adding or removing letters when you're stuck</li>
+                        <li>Look for common word patterns and prefixes/suffixes</li>
+                        <li>Use the definition hints to verify word meanings</li>
+                        <li>Check the possible words count to know if you're on the right track</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="victory-overlay" id="victory-overlay">
+            <div class="victory-content">
+                <div class="victory-title">Challenge Complete!</div>
+                <div class="victory-stats">
+                    You transformed "<span id="victory-start-word"></span>" into "<span id="victory-target-word"></span>"<br>
+                    in <span id="victory-steps"></span> steps!
+                </div>
+                <div class="victory-buttons">
+                    <button class="new-challenge-button" id="new-challenge-button">Try New Challenge</button>
+                    <button class="new-challenge-button close-victory">Continue Playing</button>
+                </div>
+                <div class="victory-share-buttons">
+                    <button class="share-button whatsapp" id="victory-share-whatsapp">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="display: block;">
+                            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+                        </svg>
+                    </button>
+                    <button class="share-button telegram" id="victory-share-telegram">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display: block;">
+                            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.296c-.146.658-.537.818-1.084.51l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.332-.373-.119L8.57 13.383l-2.95-.923c-.64-.213-.653-.64.135-.954l11.514-4.435c.532-.193.998.128.794 1.177z"/>
+                        </svg>
+                    </button>
+                    <button class="share-button twitter" id="victory-share-twitter">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="display: block;">
+                            <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const defaultGameState = {
+            currentWord: ["H", "O", "U", "S", "E"],
+            previousWord: ["H", "O", "U", "S", "E"],
+            chainLength: 0,
+            discoveredWords: new Set(["HOUSE"])
+        };
+
+        // Separate states for classic and daily modes
+        let classicGameState = {...defaultGameState};
+        let dailyGameState = null; // Will be initialized when daily challenge is activated
+        let gameState = classicGameState; // This will point to either classicGameState or dailyGameState
+        let currentMode = 'classic'; // Track the current mode
+
+        // Load classic game state from localStorage or use default
+        try {
+            const savedClassicState = localStorage.getItem('wordMorphClassicState');
+            if (savedClassicState) {
+                const parsedState = JSON.parse(savedClassicState);
+                classicGameState = {
+                    ...parsedState,
+                    discoveredWords: new Set(parsedState.discoveredWords)
+                };
+                gameState = classicGameState; // Start with classic mode
+                console.log('Loaded saved classic state:', classicGameState);
+            }
+        } catch (error) {
+            console.error('Error loading classic state:', error);
+            classicGameState = {...defaultGameState};
+            gameState = classicGameState;
+        }
+
+        // Function to save game state
+        function saveGameState(isClassic) {
+            const stateToSave = {
+                currentWord: gameState.currentWord,
+                previousWord: gameState.previousWord,
+                chainLength: gameState.chainLength,
+                discoveredWords: Array.from(gameState.discoveredWords)
+            };
+            
+            if (isClassic) {
+                localStorage.setItem('wordMorphClassicState', JSON.stringify(stateToSave));
+            } else {
+                localStorage.setItem('wordMorphDailyGameState', JSON.stringify(stateToSave));
+            }
+        }
+
+        // DOM Elements
+        const messageEl = document.getElementById("message");
+        const definitionEl = document.getElementById("definition");
+        const gameArea = document.getElementById("game-area");
+        const chainLengthEl = document.getElementById("chain-length");
+        const wordPossibilitiesEl = document.getElementById("word-possibilities");
+
+        // Dictionary API Base URL
+        const DICTIONARY_API = "https://api.dictionaryapi.dev/api/v2/entries/en/";
+
+        async function fetchWordPossibilities(word) {
+            try {
+                console.log('Attempting to fetch word possibilities for:', word);
+                
+                // Load word_graph.json if not already loaded
+                if (!window.wordGraph) {
+                    const response = await fetch('./word_graph.json');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    window.wordGraph = await response.json();
+                }
+                
+                const lowerWord = word.toLowerCase();
+                console.log('Checking possibilities for:', lowerWord);
+                
+                // Get possible transformations from the word graph
+                const possibleTransformations = window.wordGraph[lowerWord] || [];
+                
+                // Filter out already discovered words
+                const undiscoveredTransformations = possibleTransformations.filter(
+                    w => !gameState.discoveredWords.has(w.toUpperCase())
+                );
+                
+                console.log('Total possible transformations:', possibleTransformations.length);
+                console.log('Undiscovered transformations:', undiscoveredTransformations.length);
+                
+                return undiscoveredTransformations.length;
+            } catch (error) {
+                console.error('Detailed error in fetchWordPossibilities:', {
+                    message: error.message,
+                    stack: error.stack,
+                    word: word,
+                    location: window.location.href
+                });
+                return 0;
+            }
+        }
+
+        async function updateUI(feedbackClass = "") {
+            // Update game area
+            gameArea.innerHTML = "";
+            gameState.currentWord.forEach((letter, index) => {
+                const box = document.createElement("div");
+                box.className = "letter-box";
+                box.textContent = letter;
+                box.addEventListener("click", () => handleLetterClick(index));
+                gameArea.appendChild(box);
+            });
+
+            // Add feedback class for visual feedback
+            gameArea.className = `game-box ${feedbackClass}`;
+
+            // Update stats
+            chainLengthEl.textContent = gameState.chainLength;
+            const currentWord = gameState.currentWord.join('');
+            const possibilities = await fetchWordPossibilities(currentWord);
+            wordPossibilitiesEl.textContent = possibilities;
+        }
+
+        function showMessage(text, isError = false) {
+            messageEl.textContent = text;
+            messageEl.style.color = isError ? "var(--error-color)" : "var(--text-color)";
+        }
+
+        function showDefinition(definition) {
+            definitionEl.textContent = definition ? `Definition: ${definition}` : "";
+        }
+
+        function handleLetterClick(index) {
+            const mobileInput = document.getElementById('mobile-input');
+            
+            // If clicking the same letter again, unselect it
+            if (gameState.selectedIndex === index) {
+                unselectCurrentLetter();
+                return;
+            }
+            
+            gameState.selectedIndex = index;
+            gameState.addMode = null;
+            
+            // Show keyboard
+            document.querySelector('.dynamic-container').classList.add('keyboard-active');
+            
+            // Highlight the selected letter box and remove plus indicators
+            const letterBoxes = document.querySelectorAll('.letter-box');
+            letterBoxes.forEach(box => {
+                box.classList.remove('selected');
+            });
+            letterBoxes[index].classList.add('selected');
+
+            // Reset action buttons and indicators
+            document.querySelectorAll('.action-key').forEach(k => k.classList.remove('active'));
+            document.querySelectorAll('.plus-indicator').forEach(el => el.remove());
+            
+            // Focus the input and set its value to the current letter
+            mobileInput.value = gameState.currentWord[index];
+            mobileInput.focus();
+        }
+
+        function calculatePossibleWords() {
+            if (!wordPossibilities) {
+                console.log('Word possibilities not loaded yet');
+                return 0;
+            }
+            
+            const currentWordStr = gameState.currentWord.join('');
+            console.log('Calculating possibilities for:', currentWordStr);
+            
+            const possibilities = wordPossibilities[currentWordStr];
+            console.log('Found possibilities object:', possibilities);
+            
+            if (!possibilities) {
+                console.log('No possibilities found for word');
+                return 0;
+            }
+            
+            const result = Math.max(0, possibilities.total - 1);
+            console.log('Calculated result:', result);
+            return result;
+        }
+
+        async function checkWordValidity() {
+            const currentWord = gameState.currentWord.join('').toLowerCase();
+            const previousWord = gameState.previousWord.join('').toLowerCase();
+            
+            console.log(`Checking word: ${currentWord}, Previous: ${previousWord}`);
+            
+            // Check if the word is a duplicate
+            if (gameState.discoveredWords.has(currentWord.toUpperCase())) {
+                console.log('Duplicate word found');
+                showMessage("You've already used this word!", true);
+                return false;
+            }
+            
+            // Check if the word is a valid transformation from the previous word
+            // Load word_graph.json if not already loaded
+            if (!window.wordGraph) {
+                try {
+                    const response = await fetch('./word_graph.json');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    window.wordGraph = await response.json();
+                } catch (error) {
+                    console.error('Error loading word graph:', error);
+                    showMessage("Error validating word. Please try again.", true);
+                    return false;
+                }
+            }
+            
+            // Check if the current word is a valid transformation of the previous word
+            const validTransformations = window.wordGraph[previousWord] || [];
+            const isValidTransformation = validTransformations.includes(currentWord);
+            
+            if (!isValidTransformation) {
+                console.log('Invalid transformation');
+                showMessage("Not a valid word transformation!", true);
+                return false;
+            }
+            
+            // Word is valid in our dictionary, now fetch definition from API
+            try {
+                const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${currentWord}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Word exists in the dictionary API
+                    console.log('API response:', data);
+                    
+                    // Extract definition
+                    let definition = "";
+                    if (data && data.length > 0 && data[0].meanings && data[0].meanings.length > 0) {
+                        definition = data[0].meanings[0].definitions[0].definition;
+                    }
+                    
+                    // Update game state
+                    gameState.chainLength++;
+                    gameState.discoveredWords.add(currentWord.toUpperCase());
+                    gameState.previousWord = [...gameState.currentWord];
+                    
+                    // Update UI
+                    showMessage(`Valid word: ${currentWord.toUpperCase()}`);
+                    showDefinition(definition);
+                    
+                    return true;
+                } else {
+                    // Word doesn't exist in the dictionary API but is valid in our graph
+                    // We'll still accept it but without a definition
+                    console.log('Word not found in dictionary API but valid in our graph');
+                    
+                    // Update game state
+                    gameState.chainLength++;
+                    gameState.discoveredWords.add(currentWord.toUpperCase());
+                    gameState.previousWord = [...gameState.currentWord];
+                    
+                    // Update UI
+                    showMessage(`Valid word: ${currentWord.toUpperCase()}`);
+                    showDefinition("");
+                    
+                    return true;
+                }
+            } catch (error) {
+                console.error('Error fetching definition:', error);
+                
+                // Since the word is valid in our graph, we'll accept it even if the API fails
+                // Update game state
+                gameState.chainLength++;
+                gameState.discoveredWords.add(currentWord.toUpperCase());
+                gameState.previousWord = [...gameState.currentWord];
+                
+                // Update UI
+                showMessage(`Valid word: ${currentWord.toUpperCase()}`);
+                showDefinition("");
+                
+                return true;
+            }
+        }
+
+        // Handle letter deletion
+        async function handleLetterDeletion(index) {
+            gameState.previousWord = [...gameState.currentWord];
+            gameState.currentWord.splice(index, 1);
+            updateUI("deleting");
+            
+            // Wait a moment for UI to update before checking word validity
+            setTimeout(async () => {
+                const isValid = await checkWordValidity();
+                
+                if (!isValid) {
+                    // If word is not valid, revert to previous word after a short delay
+                    setTimeout(() => {
+                        gameState.currentWord = [...gameState.previousWord];
+                        updateUI("");
+                    }, 1000);
+                } else {
+                    // If word is valid, update UI with success feedback
+                    updateUI("correct");
+                    setTimeout(() => {
+                        updateUI("");
+                    }, 1000);
+                    
+                    // Save game state
+                    if (currentMode === 'classic') {
+                        saveGameState(true);
+                    } else {
+                        saveGameState(false);
+                        dailyChallenge.checkWin();
+                    }
+                }
+            }, 300);
+        }
+
+        // Handle letter modification
+        async function handleLetterModification(index, newLetter) {
+            gameState.previousWord = [...gameState.currentWord];
+            const newWord = [...gameState.currentWord];
+            newWord[index] = newLetter;
+            gameState.currentWord = newWord;
+            updateUI();
+            
+            // Wait a moment for UI to update before checking word validity
+            setTimeout(async () => {
+                const isValid = await checkWordValidity();
+                
+                if (!isValid) {
+                    // If word is not valid, revert to previous word after a short delay
+                    setTimeout(() => {
+                        gameState.currentWord = [...gameState.previousWord];
+                        updateUI("");
+                    }, 1000);
+                } else {
+                    // If word is valid, update UI with success feedback
+                    updateUI("correct");
+                    setTimeout(() => {
+                        updateUI("");
+                    }, 1000);
+                    
+                    // Save game state
+                    if (currentMode === 'classic') {
+                        saveGameState(true);
+                    } else {
+                        saveGameState(false);
+                        dailyChallenge.checkWin();
+                    }
+                }
+            }, 100);
+        }
+
+        // Handle letter addition
+        async function handleLetterAddition(index, newLetter, position) {
+            gameState.previousWord = [...gameState.currentWord];
+            const newWord = [...gameState.currentWord];
+            const insertIndex = position === 'left' ? index : index + 1;
+            newWord.splice(insertIndex, 0, newLetter);
+            gameState.currentWord = newWord;
+            updateUI();
+            
+            // Wait a moment for UI to update before checking word validity
+            setTimeout(async () => {
+                const isValid = await checkWordValidity();
+                
+                if (!isValid) {
+                    // If word is not valid, revert to previous word after a short delay
+                    setTimeout(() => {
+                        gameState.currentWord = [...gameState.previousWord];
+                        updateUI("");
+                    }, 1000);
+                } else {
+                    // If word is valid, update UI with success feedback
+                    updateUI("correct");
+                    setTimeout(() => {
+                        updateUI("");
+                    }, 1000);
+                    
+                    // Save game state
+                    if (currentMode === 'classic') {
+                        saveGameState(true);
+                    } else {
+                        saveGameState(false);
+                        dailyChallenge.checkWin();
+                    }
+                }
+            }, 100);
+        }
+
+        // Update keyboard event handling
+        document.addEventListener('keydown', async function(e) {
+                if (gameState.selectedIndex !== undefined) {
+                const letterBoxes = document.querySelectorAll('.letter-box');
+                
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    gameState.addMode = 'left';
+                    letterBoxes.forEach(box => box.classList.remove('add-left', 'add-right'));
+                    letterBoxes[gameState.selectedIndex].classList.add('add-left');
+                    return;
+                }
+                if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    gameState.addMode = 'right';
+                    letterBoxes.forEach(box => box.classList.remove('add-left', 'add-right'));
+                    letterBoxes[gameState.selectedIndex].classList.add('add-right');
+                    return;
+                }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    unselectCurrentLetter();
+                    return;
+                }
+
+                    if (e.key === 'Backspace' || e.key === 'Delete') {
+                    await handleLetterDeletion(gameState.selectedIndex);
+                    unselectCurrentLetter();
+                    } else if (/^[A-Za-z]$/.test(e.key)) {
+                    const letter = e.key.toUpperCase();
+                    if (gameState.addMode) {
+                        await handleLetterAddition(gameState.selectedIndex, letter, gameState.addMode);
+                        gameState.addMode = null;
+                    } else {
+                        await handleLetterModification(gameState.selectedIndex, letter);
+                    }
+                    unselectCurrentLetter();
+                    }
+                }
+            });
+
+        // Add this new function to handle letter unselection
+        function unselectCurrentLetter() {
+            const letterBoxes = document.querySelectorAll('.letter-box');
+            letterBoxes.forEach(box => {
+                box.classList.remove('selected', 'add-left', 'add-right');
+            });
+            document.querySelector('.dynamic-container').classList.remove('keyboard-active');
+            gameState.selectedIndex = undefined;
+            gameState.addMode = null;
+            document.querySelectorAll('.action-key').forEach(k => k.classList.remove('active'));
+            document.querySelectorAll('.plus-indicator').forEach(el => el.remove());
+        }
+
+        // Update handleKeyPress for the on-screen keyboard
+        async function handleKeyPress(key) {
+            if (!gameState.selectedIndex && gameState.selectedIndex !== 0) return;
+            
+            if (gameState.addMode) {
+                await handleLetterAddition(gameState.selectedIndex, key, gameState.addMode);
+                gameState.addMode = null;
+                document.querySelectorAll('.action-key').forEach(k => k.classList.remove('active'));
+                document.querySelectorAll('.plus-indicator').forEach(el => el.remove());
+            } else {
+                await handleLetterModification(gameState.selectedIndex, key);
+            }
+            
+            document.querySelector('.dynamic-container').classList.remove('keyboard-active');
+            gameState.selectedIndex = undefined;
+        }
+
+        // Add action button event listeners
+        document.getElementById('add-left').addEventListener('click', function() {
+            if (!gameState.selectedIndex && gameState.selectedIndex !== 0) return;
+            
+            // Toggle add mode
+            if (gameState.addMode === 'left') {
+                gameState.addMode = null;
+                this.classList.remove('active');
+                document.querySelectorAll('.plus-indicator').forEach(el => el.remove());
+            } else {
+                gameState.addMode = 'left';
+                document.querySelectorAll('.action-key').forEach(k => k.classList.remove('active'));
+                this.classList.add('active');
+                showPlusIndicator('left', gameState.selectedIndex);
+            }
+        });
+
+        document.getElementById('add-right').addEventListener('click', function() {
+            if (!gameState.selectedIndex && gameState.selectedIndex !== 0) return;
+            
+            // Toggle add mode
+            if (gameState.addMode === 'right') {
+                gameState.addMode = null;
+                this.classList.remove('active');
+                document.querySelectorAll('.plus-indicator').forEach(el => el.remove());
+            } else {
+                gameState.addMode = 'right';
+                document.querySelectorAll('.action-key').forEach(k => k.classList.remove('active'));
+                this.classList.add('active');
+                showPlusIndicator('right', gameState.selectedIndex);
+            }
+        });
+
+        document.getElementById('delete').addEventListener('click', async function() {
+            if (!gameState.selectedIndex && gameState.selectedIndex !== 0) return;
+            
+            await handleLetterDeletion(gameState.selectedIndex);
+            unselectCurrentLetter();
+        });
+
+        // Remove the keyboard event listener for arrow keys since we now use buttons
+        document.removeEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                e.preventDefault();
+            }
+        });
+
+        // Update the mobile input handling
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Load word graph
+            try {
+                const response = await fetch('./word_graph.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                window.wordGraph = await response.json();
+                console.log('Word graph loaded successfully');
+            } catch (error) {
+                console.error('Error loading word graph:', error);
+                showMessage("Error loading word dictionary. Some features may not work correctly.", true);
+            }
+            
+            const mobileInput = document.getElementById('mobile-input');
+            
+            // Prevent mobile keyboard from showing
+            mobileInput.readOnly = true;
+
+            // Handle keyboard hiding on mobile
+            window.addEventListener('resize', function() {
+                // Remove focus to prevent keyboard from showing
+                mobileInput.blur();
+            });
+
+            // Initialize the game
+            updateUI();
+        });
+
+        // Add keyboard letter click handlers
+        document.querySelectorAll('.key').forEach(key => {
+            key.addEventListener('click', () => handleKeyPress(key.textContent));
+        });
+
+        function showPlusIndicator(position, index) {
+            // Remove any existing plus indicators
+            document.querySelectorAll('.plus-indicator').forEach(el => el.remove());
+
+            const gameBox = document.getElementById('game-area');
+            const letterBoxes = document.querySelectorAll('.letter-box');
+            const selectedBox = letterBoxes[index];
+            const boxRect = selectedBox.getBoundingClientRect();
+            const gameBoxRect = gameBox.getBoundingClientRect();
+
+            const plus = document.createElement('div');
+            plus.className = 'plus-indicator visible';
+            plus.textContent = '+';
+            gameBox.appendChild(plus);
+
+            if (position === 'left') {
+                plus.style.left = `${boxRect.left - gameBoxRect.left - 4}px`;
+            } else {
+                plus.style.left = `${boxRect.right - gameBoxRect.left - 4}px`;
+            }
+        }
+
+        // Add this to your JavaScript section
+        const chainView = document.querySelector('.word-chain-view');
+        const closeWheel = document.querySelector('.close-wheel');
+        const rollbackButton = document.querySelector('.rollback-button');
+        let selectedWordIndex = -1;
+
+        // Make the chain length clickable
+        document.querySelector('.stats div:first-child').addEventListener('click', showWordChain);
+
+        function showWordChain() {
+            const words = Array.from(gameState.discoveredWords);
+            const chainContainer = document.querySelector('.word-chain');
+            chainContainer.innerHTML = '';
+            
+            // Reset rollback state
+            selectedWordIndex = -1;
+            rollbackButton.classList.remove('visible');
+            
+            words.forEach((word, index) => {
+                const wordContainer = document.createElement('div');
+                wordContainer.className = 'chain-word';
+                wordContainer.textContent = word;
+                
+                wordContainer.addEventListener('click', () => {
+                    document.querySelectorAll('.chain-word').forEach(w => w.classList.remove('selected'));
+                    wordContainer.classList.add('selected');
+                    selectedWordIndex = index;
+                    rollbackButton.classList.add('visible');
+                });
+                
+                chainContainer.appendChild(wordContainer);
+            });
+
+            chainView.classList.add('active');
+            setTimeout(() => {
+                chainContainer.scrollTop = chainContainer.scrollHeight;
+            }, 100);
+        }
+
+        closeWheel.addEventListener('click', () => {
+            chainView.classList.remove('active');
+            rollbackButton.classList.remove('visible');
+            selectedWordIndex = -1;
+        });
+
+        rollbackButton.addEventListener('click', () => {
+            if (selectedWordIndex === -1) return;
+            
+            const words = Array.from(gameState.discoveredWords);
+            const selectedWord = words[selectedWordIndex];
+            
+            // Keep words up to and including the selected word
+            const newWords = words.slice(0, selectedWordIndex + 1);
+            gameState.discoveredWords = new Set(newWords);
+            gameState.chainLength = selectedWordIndex;
+            gameState.currentWord = selectedWord.split('');
+            gameState.previousWord = selectedWord.split('');
+            
+            saveGameState();
+            updateUI();
+            chainView.classList.remove('active');
+            showMessage(`Rolled back to "${selectedWord}"`);
+        });
+
+        const resetButton = document.querySelector('.reset-button');
+        resetButton.addEventListener('click', () => {
+            if (confirm('Are you sure you want to reset the game? This will clear your current progress.')) {
+                gameState = {...defaultGameState};
+                gameState.discoveredWords = new Set(["HOUSE"]);
+                localStorage.removeItem('wordMorphClassicState');
+                updateUI();
+                showMessage('Game reset! Start a new chain from HOUSE');
+                showDefinition('');
+                chainView.classList.remove('active');
+            }
+        });
+
+        // Onboarding and Instructions
+        const helpButton = document.getElementById('help-button');
+        const instructionsOverlay = document.getElementById('instructions-overlay');
+        const closeInstructions = document.querySelector('.close-instructions');
+
+        // Show instructions
+        helpButton.addEventListener('click', () => {
+            instructionsOverlay.classList.add('active');
+            helpButton.style.opacity = '0';
+            helpButton.style.pointerEvents = 'none';
+        });
+
+        // Close instructions
+        closeInstructions.addEventListener('click', () => {
+            instructionsOverlay.classList.remove('active');
+            helpButton.style.opacity = '1';
+            helpButton.style.pointerEvents = 'auto';
+        });
+
+        // Daily Challenge System
+        const dailyChallenge = {
+            state: {
+                startWord: "",
+                targetWord: "",
+                currentPath: [],
+                bestPath: [],
+                date: "",
+                isActive: false
+            },
+
+            // Generate a deterministic daily challenge based on the date
+            async generateDailyWords(date, isRandom = false) {
+                try {
+                    // For random challenges, don't use date seed
+                    let seed = isRandom ? Math.random() * 233280 : new Date(date).getTime();
+                    const rng = () => {
+                        seed = (seed * 9301 + 49297) % 233280;
+                        return seed / 233280;
+                    };
+
+                    // Fetch the precomputed words
+                    const response = await fetch('./precomputed_words_aggregated.json');
+                    if (!response.ok) {
+                        console.error('Failed to fetch precomputed words');
+                        return ["HOUSE", "MOUSE"]; // Fallback
+                    }
+
+                    const data = await response.json();
+                    const words = Object.keys(data).filter(word => 
+                        word.length >= 4 && word.length <= 6 && // Filter words by length
+                        data[word].total >= 5 // Ensure the word has enough possible transformations
+                    );
+
+                    // Use seeded random to select words
+                    const startIndex = Math.floor(rng() * words.length);
+                    let startWord = words[startIndex];
+                    
+                    // Find a target word that's different and has a possible path
+                    let attempts = 0;
+                    let targetWord;
+                    do {
+                        const targetIndex = Math.floor(rng() * words.length);
+                        targetWord = words[targetIndex];
+                        attempts++;
+                        
+                        // Prevent infinite loop
+                        if (attempts > 100) {
+                            return ["HOUSE", "MOUSE"]; // Fallback if no suitable pair found
+                        }
+                    } while (
+                        targetWord === startWord || 
+                        Math.abs(targetWord.length - startWord.length) > 2 // Ensure lengths are not too different
+                    );
+
+                    console.log(`Generated ${isRandom ? 'random' : 'daily'} challenge: ${startWord} -> ${targetWord}`);
+                    return [startWord.toUpperCase(), targetWord.toUpperCase()];
+                } catch (error) {
+                    console.error('Error generating words:', error);
+                    return ["HOUSE", "MOUSE"]; // Fallback
+                }
+            },
+
+            async init() {
+                const today = new Date().toISOString().split('T')[0];
+                
+                // Load saved state
+                const savedState = localStorage.getItem('wordMorphDailyState');
+                if (savedState) {
+                    const parsed = JSON.parse(savedState);
+                    if (parsed.date === today) {
+                        this.state = parsed;
+                        
+                        // Load saved game state for daily challenge if in daily mode
+                        if (dailyModeBtn.classList.contains('active')) {
+                            const savedDailyGameState = localStorage.getItem('wordMorphDailyGameState');
+                            if (savedDailyGameState) {
+                                const parsedGameState = JSON.parse(savedDailyGameState);
+                                gameState = {
+                                    ...parsedGameState,
+                                    discoveredWords: new Set(parsedGameState.discoveredWords)
+                                };
+                                if (this.state.isActive) {
+                                    updateUI();
+                                }
+                            } else {
+                                // Initialize new game state with start word
+                                gameState = {
+                                    currentWord: this.state.startWord.split(''),
+                                    previousWord: this.state.startWord.split(''),
+                                    chainLength: 0,
+                                    discoveredWords: new Set([this.state.startWord])
+                                };
+                                updateUI();
+                            }
+                        }
+                        
+                        this.updateUI();
+                        return;
+                    }
+                }
+
+                // Generate new daily challenge
+                const [startWord, targetWord] = await this.generateDailyWords(today);
+                this.state = {
+                    startWord,
+                    targetWord,
+                    currentPath: [startWord],
+                    bestPath: [],
+                    date: today,
+                    isActive: false
+                };
+                this.save();
+                
+                // Clear any existing daily game state
+                localStorage.removeItem('wordMorphDailyGameState');
+                
+                this.updateUI();
+            },
+
+            save() {
+                localStorage.setItem('wordMorphDailyState', JSON.stringify(this.state));
+            },
+
+            updateUI() {
+                const targetWordEl = document.getElementById('target-word');
+                const bestPathEl = document.getElementById('best-path-length');
+
+                targetWordEl.textContent = this.state.targetWord;
+                bestPathEl.textContent = this.state.bestPath.length ? this.state.bestPath.length - 1 : '-';
+            },
+
+            activate() {
+                this.state.isActive = true;
+                this.save();
+                
+                // Save current classic state before switching
+                if (currentMode === 'classic') {
+                    // Make sure classicGameState is up to date
+                    classicGameState = {...gameState};
+                    saveGameState(true);
+                }
+                
+                currentMode = 'daily';
+                
+                // Create or load daily game state
+                try {
+                    const savedDailyState = localStorage.getItem('wordMorphDailyGameState');
+                    if (savedDailyState) {
+                        const parsedState = JSON.parse(savedDailyState);
+                        dailyGameState = {
+                            ...parsedState,
+                            discoveredWords: new Set(parsedState.discoveredWords)
+                        };
+                    } else {
+                        dailyGameState = {
+                            currentWord: this.state.startWord.split(''),
+                            previousWord: this.state.startWord.split(''),
+                            chainLength: 0,
+                            discoveredWords: new Set([this.state.startWord])
+                        };
+                    }
+                } catch (error) {
+                    console.error('Error loading daily state:', error);
+                    dailyGameState = {
+                        currentWord: this.state.startWord.split(''),
+                        previousWord: this.state.startWord.split(''),
+                        chainLength: 0,
+                        discoveredWords: new Set([this.state.startWord])
+                    };
+                }
+                
+                // Switch to daily game state
+                gameState = dailyGameState;
+                updateUI();
+                this.updateUI();
+                showMessage(`Daily Challenge: Transform "${this.state.startWord}" into "${this.state.targetWord}"!`);
+            },
+
+            deactivate() {
+                this.state.isActive = false;
+                this.save();
+                
+                // Save current daily game state before switching back to classic
+                if (currentMode === 'daily') {
+                    // Make sure dailyGameState is up to date
+                    dailyGameState = {...gameState};
+                    saveGameState(false);
+                }
+                
+                currentMode = 'classic';
+            },
+
+            checkWin() {
+                if (!this.state.isActive) return;
+
+                const currentWord = gameState.currentWord.join('');
+                if (currentWord === this.state.targetWord) {
+                    const pathLength = gameState.discoveredWords.size;
+                    if (!this.state.bestPath.length || pathLength < this.state.bestPath.length) {
+                        this.state.bestPath = Array.from(gameState.discoveredWords);
+                        this.save();
+                        this.updateUI();
+                    }
+                    
+                    // Show victory overlay
+                    const victoryOverlay = document.getElementById('victory-overlay');
+                    document.getElementById('victory-start-word').textContent = this.state.startWord;
+                    document.getElementById('victory-target-word').textContent = this.state.targetWord;
+                    document.getElementById('victory-steps').textContent = pathLength - 1;
+                    victoryOverlay.classList.add('active');
+                    
+                    showMessage(`Congratulations! You've reached the target word in ${pathLength - 1} steps!`);
+                }
+            },
+
+            async generateNewChallenge() {
+                const [startWord, targetWord] = await this.generateDailyWords(new Date().toISOString(), true);
+                this.state.startWord = startWord;
+                this.state.targetWord = targetWord;
+                this.state.currentPath = [startWord];
+                this.state.bestPath = [];
+                this.save();
+                
+                // Create new daily game state
+                dailyGameState = {
+                    currentWord: startWord.split(''),
+                    previousWord: startWord.split(''),
+                    chainLength: 0,
+                    discoveredWords: new Set([startWord])
+                };
+                
+                // Update the active game state if in daily mode
+                if (currentMode === 'daily') {
+                    gameState = {...dailyGameState};
+                }
+                
+                // Save the daily game state
+                localStorage.setItem('wordMorphDailyGameState', JSON.stringify({
+                    currentWord: dailyGameState.currentWord,
+                    previousWord: dailyGameState.previousWord,
+                    chainLength: dailyGameState.chainLength,
+                    discoveredWords: Array.from(dailyGameState.discoveredWords)
+                }));
+                
+                // Update all UI elements
+                this.updateUI();
+                if (currentMode === 'daily') {
+                    updateUI();
+                }
+                document.getElementById('victory-overlay').classList.remove('active');
+                showMessage(`New Challenge: Transform "${startWord}" into "${targetWord}"!`);
+                
+                // Fetch and show definition of the start word
+                try {
+                    const response = await fetch(`${DICTIONARY_API}${startWord.toLowerCase()}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        const definition = data[0]?.meanings[0]?.definitions[0]?.definition || "No definition available.";
+                        showDefinition(definition);
+                    }
+                } catch (error) {
+                    console.error('Error fetching definition:', error);
+                    showDefinition('');
+                }
+            }
+        };
+
+        // Mode switching
+        const classicModeBtn = document.getElementById('classic-mode');
+        const dailyModeBtn = document.getElementById('daily-mode');
+        const dailyChallengeInfo = document.getElementById('daily-challenge-info');
+        const resetIconButton = document.getElementById('reset-icon-button');
+        const refreshChallengeButton = document.getElementById('refresh-challenge-button');
+
+        dailyModeBtn.addEventListener('click', () => {
+            // Only switch if not already in daily mode
+            if (currentMode !== 'daily') {
+                dailyModeBtn.classList.add('active');
+                classicModeBtn.classList.remove('active');
+                dailyChallengeInfo.classList.add('active');
+                refreshChallengeButton.classList.add('active');
+                resetIconButton.classList.remove('active');
+                
+                dailyChallenge.activate();
+            }
+        });
+
+        classicModeBtn.addEventListener('click', () => {
+            // Only switch if not already in classic mode
+            if (currentMode !== 'classic') {
+                classicModeBtn.classList.add('active');
+                dailyModeBtn.classList.remove('active');
+                dailyChallengeInfo.classList.remove('active');
+                refreshChallengeButton.classList.remove('active');
+                resetIconButton.classList.add('active');
+                
+                dailyChallenge.deactivate();
+                
+                // Switch to classic game state
+                gameState = {...classicGameState};
+                updateUI();
+                showMessage('Classic mode: Create the longest possible word chain!');
+            }
+        });
+
+        // Add reset icon button handler
+        resetIconButton.addEventListener('click', () => {
+            if (confirm('Are you sure you want to reset the game? This will clear your current progress.')) {
+                if (currentMode === 'classic') {
+                    // Reset classic mode
+                    classicGameState = {...defaultGameState};
+                    classicGameState.discoveredWords = new Set(["HOUSE"]);
+                    gameState = {...classicGameState};
+                    localStorage.removeItem('wordMorphClassicState');
+                    updateUI();
+                    showMessage('Game reset! Start a new chain from HOUSE');
+                } else if (currentMode === 'daily') {
+                    // Reset daily challenge to its starting word
+                    dailyGameState = {
+                        currentWord: dailyChallenge.state.startWord.split(''),
+                        previousWord: dailyChallenge.state.startWord.split(''),
+                        chainLength: 0,
+                        discoveredWords: new Set([dailyChallenge.state.startWord])
+                    };
+                    gameState = {...dailyGameState};
+                    localStorage.setItem('wordMorphDailyGameState', JSON.stringify({
+                        currentWord: dailyGameState.currentWord,
+                        previousWord: dailyGameState.previousWord,
+                        chainLength: dailyGameState.chainLength,
+                        discoveredWords: Array.from(dailyGameState.discoveredWords)
+                    }));
+                    updateUI();
+                    showMessage(`Daily Challenge reset! Start from "${dailyChallenge.state.startWord}" again`);
+                }
+                showDefinition('');
+            }
+        });
+
+        // Initialize reset icon button visibility based on initial mode
+        resetIconButton.classList.add('active');
+
+        // Initialize daily challenge
+        dailyChallenge.init();
+
+        // Add win condition check to the checkWordValidity function
+        const originalCheckWordValidity = checkWordValidity;
+        checkWordValidity = async function() {
+            await originalCheckWordValidity.apply(this, arguments);
+            
+            // Update the appropriate game state object based on current mode
+            if (currentMode === 'classic') {
+                classicGameState = {...gameState};
+                saveGameState(true);
+            } else if (currentMode === 'daily') {
+                dailyGameState = {...gameState};
+                saveGameState(false);
+                dailyChallenge.checkWin();
+            }
+        };
+
+        // Add this after the dailyChallenge initialization
+        document.getElementById('new-challenge-button').addEventListener('click', () => {
+            // If we're in classic mode, switch to daily mode first
+            if (currentMode === 'classic') {
+                dailyModeBtn.click();
+            }
+            
+            // Then generate a new challenge
+            dailyChallenge.generateNewChallenge();
+        });
+
+        document.querySelector('.close-victory').addEventListener('click', () => {
+            document.getElementById('victory-overlay').classList.remove('active');
+            
+            // After victory, save the daily state but don't affect classic mode
+            if (currentMode === 'daily') {
+                // Update dailyGameState with current state
+                dailyGameState = {...gameState};
+                saveGameState(false);
+            }
+        });
+
+        // Add this after the dailyChallenge initialization
+        document.getElementById('refresh-challenge-button').addEventListener('click', () => {
+            if (confirm('Are you sure you want to start a new challenge? Your current progress will be lost.')) {
+                // Only affect daily challenge mode
+                if (currentMode === 'daily') {
+                    dailyChallenge.generateNewChallenge();
+                    // Clear the daily game state when generating a new challenge
+                    localStorage.removeItem('wordMorphDailyGameState');
+                }
+            }
+        });
+
+        // Social sharing functionality
+        function generateShareMessage() {
+            const isDailyMode = document.getElementById('daily-mode').classList.contains('active');
+            let message;
+            
+            if (isDailyMode) {
+                const startWord = dailyChallenge.state.startWord;
+                const targetWord = dailyChallenge.state.targetWord;
+                const currentWord = gameState.currentWord.join('');
+                const pathLength = gameState.chainLength;
+                const bestPath = dailyChallenge.state.bestPath.length - 1;
+                const isComplete = currentWord === targetWord;
+                
+                if (isComplete) {
+                    message = `🎯 Word Morph Daily Challenge - Completed!\n\n` +
+                             `${startWord} ➔ ${targetWord}\n` +
+                             `Solved in ${pathLength} steps ✨\n` +
+                             `${bestPath > 0 ? `Best path: ${bestPath} steps 🏆\n` : ''}` +
+                             `\nCan you find a shorter path? 🤔\n` +
+                             `Play at: ${window.location.href}`;
+                } else {
+                    const progress = currentWord === startWord ? 
+                        `Still at the start word!\n` :
+                        `Current word: ${currentWord}\n`;
+                    
+                    message = `🎯 Word Morph Daily Challenge - In Progress\n\n` +
+                             `Start: ${startWord}\n` +
+                             `Target: ${targetWord}\n` +
+                             progress +
+                             `Steps taken: ${pathLength}\n` +
+                             `\nCan you help me reach the target? 🤔\n` +
+                             `Play at: ${window.location.href}`;
+                }
+            } else {
+                const chainLength = gameState.chainLength;
+                const words = Array.from(gameState.discoveredWords);
+                const firstWord = words[0];
+                const lastWord = words[words.length - 1];
+                
+                message = `🔠 Word Morph Achievement!\n\n` +
+                         `${firstWord} ➔ ${lastWord}\n` +
+                         `Chain length: ${chainLength} words 🎯\n` +
+                         `\nCan you beat my chain? 🏆\n` +
+                         `Play at: ${window.location.href}`;
+            }
+            
+            return encodeURIComponent(message);
+        }
+
+        function openShareWindow(url) {
+            const shareWindow = window.open(url, '_blank');
+            
+            // Check if the window was opened successfully
+            if (shareWindow) {
+                // Set up a timer to check if the window is closed
+                const timer = setInterval(() => {
+                    if (shareWindow.closed) {
+                        clearInterval(timer);
+                        // Focus back on our game window
+                        window.focus();
+                    }
+                }, 500);
+            }
+        }
+
+        document.getElementById('share-whatsapp').addEventListener('click', () => {
+            const message = generateShareMessage();
+            openShareWindow(`https://wa.me/?text=${message}`);
+        });
+
+        document.getElementById('share-telegram').addEventListener('click', () => {
+            const message = generateShareMessage();
+            openShareWindow(`https://t.me/share/url?url=${window.location.href}&text=${message}`);
+        });
+
+        document.getElementById('share-twitter').addEventListener('click', () => {
+            const message = generateShareMessage();
+            openShareWindow(`https://twitter.com/intent/tweet?text=${message}`);
+        });
+
+        // Add victory share button handlers
+        document.getElementById('victory-share-whatsapp').addEventListener('click', () => {
+            const message = generateShareMessage();
+            openShareWindow(`https://wa.me/?text=${message}`);
+        });
+
+        document.getElementById('victory-share-telegram').addEventListener('click', () => {
+            const message = generateShareMessage();
+            openShareWindow(`https://t.me/share/url?url=${window.location.href}&text=${message}`);
+        });
+
+        document.getElementById('victory-share-twitter').addEventListener('click', () => {
+            const message = generateShareMessage();
+            openShareWindow(`https://twitter.com/intent/tweet?text=${message}`);
+        });
+    </script>
+</body>
+</html>
