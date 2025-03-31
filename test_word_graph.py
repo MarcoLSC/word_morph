@@ -1,5 +1,5 @@
 import json
-from generate_word_graph import find_one_edit_words, generate_word_graph
+from word_morph.generate_word_graph import find_one_edit_words, generate_word_graph
 
 def test_with_small_wordlist():
     """Test the word graph generation with a small word list."""
