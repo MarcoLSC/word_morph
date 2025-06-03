@@ -1,59 +1,50 @@
-# Word Graph Generator
+# Word Morph Game
 
-This project generates a JSON file that maps each word to a list of words that can be formed by adding, removing, or changing one letter.
+A modern word-morphing game where players transform words by changing one letter at a time. Start with "HOUSE" and create a chain of valid words!
 
-## Files
+## Game Modes
 
-- `CROSSWD.TXT`: A list of words to process
-- `generate_word_graph.py`: The main script to generate the word graph
-- `test_word_graph.py`: A test script with a smaller word list to verify functionality
-- `word_graph.json`: The output file containing the word graph
+1. **Classic Mode**
+   - Start with the word "HOUSE"
+   - Create new words by changing one letter
+   - Track your chain length
+   - Progress is saved automatically
 
-## How to Use
-
-1. Make sure you have Python 3 installed
-2. Run the script:
-   ```
-   python3 generate_word_graph.py
-   ```
-3. The script will:
-   - Load words from `CROSSWD.TXT`
-   - Generate a graph where each word maps to words that can be formed by one edit
-   - Save the result to `word_graph.json`
+2. **Daily Challenge**
+   - New challenge every day
+   - Compete with others
+   - Track your daily progress
 
 ## Features
 
-- **Resume capability**: If the script is interrupted, it can resume from where it left off
-- **Progress tracking**: Shows progress percentage, elapsed time, and estimated time remaining
-- **Intermediate saves**: Periodically saves intermediate results to avoid losing progress
+- Real-time word validation
+- Word definitions display
+- Chain length tracking
+- Duplicate word prevention
+- Mobile-friendly design
+- Dark theme with modern UI
+- Smooth animations and transitions
 
-## Word Transformations
+## Technical Details
 
-The script finds words that can be formed by:
-1. **Adding one letter**: e.g., "cat" → "chat", "coat", "cart"
-2. **Removing one letter**: e.g., "cats" → "cat"
-3. **Changing one letter**: e.g., "cat" → "bat", "rat", "cap"
+The game uses:
+- Vanilla JavaScript for game logic
+- Dictionary API for word validation
+- LocalStorage for saving progress
+- Modern CSS with variables and animations
+- Responsive design for all devices
 
-## Example Output
+## Files
 
-The output JSON file has the following format:
+- `index.html`: Main game interface
+- `word_graph.json`: Pre-computed word connections
+- `CROSSWD.TXT`: Word list source
+- `precomputed_words_aggregated.json`: Optimized word data
 
-```json
-{
-  "cat": ["at", "bat", "cap", "car", "hat", "mat", "rat", "sat"],
-  "bat": ["at", "bar", "cat", "hat", "mat", "rat", "sat"],
-  ...
-}
-```
+## Play Online
 
-## Performance
+Visit the game at: [Word Morph Game](https://marcolesci.github.io/word_morph/)
 
-Processing the entire word list may take some time due to the large number of words and possible transformations. The script includes optimizations to make it as efficient as possible.
+## Development
 
-## Use Cases
-
-This word graph can be used for:
-- Word games like Word Morph
-- Spell checkers
-- Word suggestion systems
-- Natural language processing applications
+The game is built with pure HTML, CSS, and JavaScript - no frameworks required. The word graph generation scripts (`generate_word_graph.py` and `test_word_graph.py`) are used to create the word connection data used by the game.
