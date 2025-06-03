@@ -41,4 +41,6 @@ Thumbs.db
 *.tmp
 *.json
 !test_word_graph.json
-CROSSWD.TXT 
+!word_graph.json
+!precomputed_words_aggregated.json
+# CROSSWD.TXT - removed to allow tracking 
